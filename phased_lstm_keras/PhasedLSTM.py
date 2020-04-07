@@ -10,7 +10,6 @@ from keras import constraints
 from keras.engine import InputSpec
 from keras.legacy import interfaces
 from keras.layers import Recurrent
-from keras.utils.generic_utils import get_custom_objects
 
 def _time_distributed_dense(x, w, b=None, dropout=None,
                             input_dim=None, output_dim=None,
@@ -141,6 +140,7 @@ class PhasedLSTM(Recurrent):
                  recurrent_constraint=None,
                  bias_constraint=None,
                  timegate_constraint='non_neg',
+                 trainable_timegate=True,
                  dropout=0.,
                  recurrent_dropout=0.,
                  alpha=0.001,
@@ -171,6 +171,7 @@ class PhasedLSTM(Recurrent):
         self.dropout = min(1., max(0., dropout))
         self.recurrent_dropout = min(1., max(0., recurrent_dropout))
         self.alpha = alpha
+        self.trainable_timegate = trainable_timegate
 
     def build(self, input_shape):
         if isinstance(input_shape, list):
@@ -186,21 +187,23 @@ class PhasedLSTM(Recurrent):
         if self.stateful:
             self.reset_states()
 
-        self.kernel = self.add_weight((self.input_dim, self.units * 4),
+        self.kernel = self.add_weight(
+                                      shape=(self.input_dim, self.units * 4),
                                       name='kernel',
                                       initializer=self.kernel_initializer,
                                       regularizer=self.kernel_regularizer,
                                       constraint=self.kernel_constraint)
 
         self.recurrent_kernel = self.add_weight(
-            (self.units, self.units * 4),
+            shape=(self.units, self.units * 4),
             name='recurrent_kernel',
             initializer=self.recurrent_initializer,
             regularizer=self.recurrent_regularizer,
             constraint=self.recurrent_constraint)
 
         if self.use_bias:
-            self.bias = self.add_weight((self.units * 4,),
+            self.bias = self.add_weight(
+                                        shape=(self.units * 4,),
                                         name='bias',
                                         initializer=self.bias_initializer,
                                         regularizer=self.bias_regularizer,
@@ -235,11 +238,13 @@ class PhasedLSTM(Recurrent):
 
         # time-gate
         self.timegate_kernel = self.add_weight(
-            (3, self.units),
-            name='timegate_kernel',
-            initializer=self.timegate_initializer,
-            regularizer=self.timegate_regularizer,
-            constraint=self.timegate_constraint)
+                                    shape=(3, self.units),
+                                    name='timegate_kernel',
+                                    initializer=self.timegate_initializer,
+                                    regularizer=self.timegate_regularizer,
+                                    constraint=self.timegate_constraint,
+                                    trainable=self.trainable_timegate)
+
         self.built = True
 
     def preprocess_input(self, inputs, training=None):
@@ -297,6 +302,7 @@ class PhasedLSTM(Recurrent):
         return constants
 
     def step(self, inputs, states):
+
         h_tm1 = states[0]
         c_tm1 = states[1]
         t_tm1 = states[2]
@@ -317,7 +323,6 @@ class PhasedLSTM(Recurrent):
         # a mod n = a - (n * int(a/n))
         # phi = ((t - shift) % period) / period
         phi = ((t - shift) - (period * ((t - shift) // period))) / period
-
         # K.switch not consistent between Theano and Tensorflow backend, so write explicitly.
         up = K.cast(K.less_equal(phi, r_on * 0.5), K.floatx()) * 2 * phi / r_on
         mid = K.cast(K.less_equal(phi, r_on), K.floatx()) * \
@@ -392,10 +397,8 @@ class PhasedLSTM(Recurrent):
                   'kernel_constraint': constraints.serialize(self.kernel_constraint),
                   'recurrent_constraint': constraints.serialize(self.recurrent_constraint),
                   'bias_constraint': constraints.serialize(self.bias_constraint),
+                  'trainable_timegate': self.trainable_timegate,
                   'dropout': self.dropout,
                   'recurrent_dropout': self.recurrent_dropout}
         base_config = super(PhasedLSTM, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
-
-get_custom_objects().update({'PhasedLSTM': PhasedLSTM})
