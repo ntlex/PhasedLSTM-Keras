@@ -187,23 +187,20 @@ class PhasedLSTM(Recurrent):
         if self.stateful:
             self.reset_states()
 
-        self.kernel = self.add_weight(
-                                      shape=(self.input_dim, self.units * 4),
+        self.kernel = self.add_weight(shape=(self.input_dim, self.units * 4),
                                       name='kernel',
                                       initializer=self.kernel_initializer,
                                       regularizer=self.kernel_regularizer,
                                       constraint=self.kernel_constraint)
 
-        self.recurrent_kernel = self.add_weight(
-            shape=(self.units, self.units * 4),
-            name='recurrent_kernel',
-            initializer=self.recurrent_initializer,
-            regularizer=self.recurrent_regularizer,
-            constraint=self.recurrent_constraint)
+        self.recurrent_kernel = self.add_weight(shape=(self.units, self.units * 4),
+                                                name='recurrent_kernel',
+                                                initializer=self.recurrent_initializer,
+                                                regularizer=self.recurrent_regularizer,
+                                                constraint=self.recurrent_constraint)
 
         if self.use_bias:
-            self.bias = self.add_weight(
-                                        shape=(self.units * 4,),
+            self.bias = self.add_weight(shape=(self.units * 4,),
                                         name='bias',
                                         initializer=self.bias_initializer,
                                         regularizer=self.bias_regularizer,
@@ -237,13 +234,12 @@ class PhasedLSTM(Recurrent):
             self.bias_o = None
 
         # time-gate
-        self.timegate_kernel = self.add_weight(
-                                    shape=(3, self.units),
-                                    name='timegate_kernel',
-                                    initializer=self.timegate_initializer,
-                                    regularizer=self.timegate_regularizer,
-                                    constraint=self.timegate_constraint,
-                                    trainable=self.trainable_timegate)
+        self.timegate_kernel = self.add_weight(shape=(3, self.units),
+                                               name='timegate_kernel',
+                                               initializer=self.timegate_initializer,
+                                               regularizer=self.timegate_regularizer,
+                                               constraint=self.timegate_constraint,
+                                               trainable=self.trainable_timegate)
 
         self.built = True
 
