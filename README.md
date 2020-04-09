@@ -2,7 +2,7 @@
 
 Keras implementation of Phased LSTM [https://arxiv.org/abs/1610.09513], from NIPS 2016.
 
-This is an extension to the [fferroni/PhasedLSTM-Keras](https://github.com/fferroni/PhasedLSTM-Keras), to allow switching off the training of the timegate and enable it to work on fixed weights for the *shift*, *period* and *ratio* parameters.
+This is an extension to the [fferroni/PhasedLSTM-Keras](https://github.com/fferroni/PhasedLSTM-Keras) original contribution, to allow switching off the training of the timegate and enable it to work on fixed weights for the *shift*, *period* and *ratio* parameters.
 
 ### Usage
 
