@@ -22,7 +22,8 @@ Classification performance compared to standard Keras LSTM for MNIST dataset:
    :alt: Loss [red: PLSTM, black: LSTM]
    :align: center
 
-### Using the timegate with frozen weights
+Using the timegate with frozen weights
+================
 
 * Creating an initializer for the timegate:
     ```python
